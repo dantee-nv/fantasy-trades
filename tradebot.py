@@ -1,4 +1,3 @@
-#Just a test
 import requests
 import csv
 import itertools
@@ -6,15 +5,18 @@ from difflib import get_close_matches
 
 def load_adp(csv_path="preseason_adp.csv"):
     adp_map = {}
-    with open(csv_path, newline='', encoding='utf-8') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            player_name = row['Name'].strip()
-            try:
-                adp_value = float(row['ADP'])
-                adp_map[player_name] = adp_value
-            except ValueError:
-                continue
+    try:
+        with open(csv_path, newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                player_name = row['Name'].strip()
+                try:
+                    adp_value = float(row['ADP'])
+                    adp_map[player_name] = adp_value
+                except ValueError:
+                    continue
+    except FileNotFoundError:
+        print(f"CSV file not found at path: {csv_path}")
     return adp_map
 
 def match_player_name(name, adp_map_keys, cutoff=0.8):
@@ -63,7 +65,6 @@ def get_trade_suggestions(my_roster, other_rosters, players_data, adp_data, min_
             my_players.append({"id": pid, "name": name, "adp": adp})
 
     for roster in other_rosters:
-        opponent_id = roster["owner_id"]
         opponent_players = []
         for pid in roster.get("players", []):
             player = players_data.get(pid, {})
@@ -82,16 +83,17 @@ def get_trade_suggestions(my_roster, other_rosters, players_data, adp_data, min_
                 if adp_gain >= min_adp_gain:
                     trades.append(f"🟢 1-for-1: Trade {my_p['name']} (ADP: {my_p['adp']:.2f}) → {opp_p['name']} (ADP: {opp_p['adp']:.2f}) | Net Gain: +{adp_gain:.2f}")
 
-        for my_combo in itertools.combinations(my_players, 2):
-            my_total_adp = sum(p["adp"] for p in my_combo)
-            my_names = [p["name"] for p in my_combo]
-            for opp_p in opponent_players:
-                adp_gain = my_total_adp - opp_p["adp"]
-                if adp_gain >= min_adp_gain:
-                    combo_str = " + ".join(my_names)
-                    trades.append(f"🟢 2-for-1: Trade {combo_str} (ADP total: {my_total_adp:.2f}) → {opp_p['name']} (ADP: {opp_p['adp']:.2f}) | Net Gain: +{adp_gain:.2f}")
 
-    trades.sort(key=lambda t: float(t.split("+")[-1]), reverse=True)  # crude sort by gain
+    #     for my_combo in itertools.combinations(my_players, 2):
+    #         my_total_adp = sum(p["adp"] for p in my_combo)
+    #         my_names = [p["name"] for p in my_combo]
+    #         for opp_p in opponent_players:
+    #             adp_gain = my_total_adp - opp_p["adp"]
+    #             if adp_gain >= min_adp_gain:
+    #                 combo_str = " + ".join(my_names)
+    #                 trades.append(f"🟢 2-for-1: Trade {combo_str} (ADP total: {my_total_adp:.2f}) → {opp_p['name']} (ADP: {opp_p['adp']:.2f}) | Net Gain: +{adp_gain:.2f}")
+
+    # trades.sort(key=lambda t: float(t.split("+")[-1]), reverse=True)
 
     if trades:
         return "=== Trade Suggestions Sorted by Net ADP Gain ===\n" + "\n".join(trades)
@@ -139,6 +141,3 @@ def run_trade_suggestions(username, league_id):
     except Exception as e:
         error_msg = f"Error: {e}"
         return error_msg, error_msg
-
-adp_data = load_adp("preseason_adp.csv")
-print(f"Loaded ADP entries: {len(adp_data)}")
