@@ -48,7 +48,7 @@ def get_rosters_with_adp(rosters, user_map, players_data, adp_data):
         lines.append("")  # blank line between teams
     return "\n".join(lines)
 
-def get_trade_suggestions(my_roster, other_rosters, players_data, adp_data, min_adp_gain=5.0):
+def get_trade_suggestions(my_roster, other_rosters, players_data, adp_data, min_adp_gain):
     trades = []
     adp_names = adp_data.keys()
 
@@ -100,9 +100,10 @@ def get_trade_suggestions(my_roster, other_rosters, players_data, adp_data, min_
     else:
         return "No trades found with the specified ADP gain."
 
-def run_trade_suggestions(username, league_id):
+def run_trade_suggestions(username, league_id, min_adp_gain):
     try:
         adp_data = load_adp()
+        min_adp_gain = float(min_adp_gain)
 
         user_res = requests.get(f"https://api.sleeper.app/v1/user/{username}")
         user_res.raise_for_status()
@@ -134,7 +135,7 @@ def run_trade_suggestions(username, league_id):
         if not my_roster:
             trades_text = "⚠️ Could not find your roster. Check username and league ID."
         else:
-            trades_text = get_trade_suggestions(my_roster, other_rosters, players_data, adp_data)
+            trades_text = get_trade_suggestions(my_roster, other_rosters, players_data, adp_data, min_adp_gain)
 
         return rosters_text, trades_text
 
