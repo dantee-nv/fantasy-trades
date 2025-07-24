@@ -5,7 +5,7 @@ st.title("Fantasy Football Trade Bot")
 
 username = st.text_input("Enter your Sleeper Username")
 league_id = st.text_input("Enter your League ID")
-min_net_gain = st.number_input("Minimum Net ADP Gain")
+min_net_gain = st.number_input("Minimum Net ADP Gain", min_value=0, step=1, value=5)
 
 if st.button("Get Trade Suggestions"):
     if not username or not league_id:
